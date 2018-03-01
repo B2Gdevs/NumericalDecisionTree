@@ -2,30 +2,126 @@ import pandas as pd
 import math
 import numpy as np
 
+class Node:
+    def __init__(self):
+        self.parent = None
+        self.leftNode = None#Must be a node
+        self.rightNode = None #Must be a node
+        self.threshold = None #best Threshold
+        self.feature = None #name of feature
+        self.isLeaf = False
+        self.dataFrame = None
+        self.classification = None
+        self.visited = False
+
+
+class Tree:
+    def __init__(self):
+        self.rootNode = None
+        
+def visualize_tree(tree):
+    #append will be push to top of stack, pop() will pop the stack, this is for list reference
+    stack = []
+    rootNode = tree.rootNode
+    
+    
+
+def depth_search(node):
+    stack[]
+    
 
 def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     column_values = dataframe.iloc[:, featureIndex]
     yValues = get_yValue_column(dataframe)
+    newYValues = []
     
+    #needed to reindex the yValues
+    for i in yValues:
+        newYValues.append(i)
+        
     lessThan_TrueCount = 0
     greaterThan_TrueCount = 0
     
     lessThan_FalseCount = 0
     greaterThan_FalseCount = 0
     
+
     for counter, i in enumerate(column_values):
         if i <= threshold:
-            if yValues[counter] == className:
+            if newYValues[counter] == className:
                 lessThan_TrueCount += 1
             else:
                 lessThan_FalseCount += 1
         elif i > threshold:
-            if yValues[counter] == className:
+            if newYValues[counter] == className:
                 greaterThan_TrueCount += 1
             else:
                 greaterThan_FalseCount += 1
     
     return lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount
+    
+def generate_tree(dataframe, parentNode):
+    tree = Tree()
+    
+    if parentNode == None:
+        parentNode = Node()
+        tree.rootNode = parentNode
+        parentNode.dataFrame = dataframe
+        
+        
+    features = dataframe.columns
+    featureIndicesMaxRange = len(features) - 1
+    highestGain = 0
+    highestGainFeatureIndex = 0
+    bestThreshold = 0
+    
+    for i in range(0,featureIndicesMaxRange):
+        threshold, gain = find_optimal_threshold_and_highest_gain(dataframe, i)
+        if gain == None:
+            return tree
+        if gain > highestGain:
+            highestGain = gain
+            highestGainFeatureIndex = i
+            bestThreshold = threshold
+
+    #print(highestGain)
+    #print(features[highestGainFeatureIndex])
+    #print(bestThreshold)
+    
+    parentNode.feature = features[highestGainFeatureIndex]
+    parentNode.threshold = bestThreshold
+    
+    leftFrame = dataframe[dataframe[features[highestGainFeatureIndex]] <= bestThreshold]
+    rightFrame = dataframe[dataframe[features[highestGainFeatureIndex]] > bestThreshold]
+    
+    leftNode = Node()
+    rightNode = Node()
+    
+    leftNode.dataFrame = leftFrame
+    rightNode.dataFrame = rightFrame
+    #print(rightNode.dataFrame)
+    
+    leftNode.parent = parentNode
+    rightNode.parent = parentNode
+    
+    if dataset_entropy(leftFrame) == 0:
+        leftNode.isLeaf = True
+        leftNode.classification = leftFrame.iloc[:, -1].unique()
+    if dataset_entropy(rightFrame) == 0:
+        rightNode.isLeaf = True
+        leftNode.classification = rightFrame.iloc[:, -1].unique()
+    
+    if leftNode.isLeaf and rightNode.isLeaf:
+        return tree
+    
+    #print(rightNode.dataFrame.iloc[:, -1].unique())
+    generate_tree(leftNode.dataFrame, leftNode)
+    generate_tree(rightNode.dataFrame, rightNode)
+    
+    #print(leftNode.classification)
+    #print(rightFrame)
+            
+    #print(featureIndicesMaxRange)
 
 def true_count_probability_of_threshold_counts(lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount):
     probabilityOfLessThanTrueCount = lessThan_TrueCount / (lessThan_TrueCount + lessThan_FalseCount + greaterThan_TrueCount + greaterThan_FalseCount)
@@ -117,7 +213,7 @@ def entropy_for_threshold_counts(truecount, falsecount):
 
 def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThresholdstoCheck = 10):
     classNames = get_yValue_column(dataframe).unique()
-    #featureColumn = dataframe.iloc[:, featureIndex]
+    
     thresholds = generate_thresholds(dataframe, featureIndex, numberOfThresholdstoCheck)
     thresholdentropies = []
     
@@ -147,6 +243,9 @@ def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThr
     for i in portionedListOfThresholdEntropies:
         gains.append(information_gain(datasetEntropy, i))
     
+    if gains == []:
+        return None, None
+        
     return thresholds[gains.index(max(gains))], max(gains)
 
 def information_gain(datasetEntropy, thresholdEntropy):
@@ -210,7 +309,7 @@ def normalizeData(dataframe):
     
 iris_data = pd.read_csv("iris.csv")
 
-
+visualize_tree(generate_tree(iris_data, None))
 
 
 
