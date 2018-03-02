@@ -1,6 +1,7 @@
 import pandas as pd
 import math
 import numpy as np
+from ete3 import Tree
 
 class Node:
     def __init__(self):
@@ -13,22 +14,38 @@ class Node:
         self.dataFrame = None
         self.classification = None
         self.visited = False
+        self.height = 0
 
 
-class Tree:
+
+class Treee:
     def __init__(self):
         self.rootNode = None
+        self.height = 0
         
-def visualize_tree(tree):
-    #append will be push to top of stack, pop() will pop the stack, this is for list reference
-    stack = []
-    rootNode = tree.rootNode
-    
-    
+def visualize_tree(node):
+     result = ''
+     hasRightNode = False;
+     hasLeftNode = False;
+     if node.rightNode != None:
+         hasRightNode = True
+         result = result + "("
+         result = result + visualize_tree(node.rightNode)
+     if node.leftNode != None:
+        hasLeftNode = True
+        if hasRightNode:
+            result = result + ","
+        else:
+            result = result + "("
+        result = result + visualize_tree(node.leftNode)
+     if hasLeftNode or hasRightNode:
+        result = result + ")"
+     if node.feature is not None:
+         result = result + node.feature
+     return result
+     
 
-def depth_search(node):
-    stack[]
-    
+        
 
 def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     column_values = dataframe.iloc[:, featureIndex]
@@ -60,37 +77,42 @@ def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     
     return lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount
     
-def generate_tree(dataframe, parentNode):
-    tree = Tree()
+def generate_tree(dataframe, parentNode, tree):
     
     if parentNode == None:
         parentNode = Node()
         tree.rootNode = parentNode
         parentNode.dataFrame = dataframe
         
+    if dataset_entropy(parentNode.dataFrame) == 0:
+        parentNode.isLeaf = True
+        parentNode.classification = parentNode.dataFrame.iloc[:, -1].unique()
+        return tree
         
     features = dataframe.columns
     featureIndicesMaxRange = len(features) - 1
     highestGain = 0
     highestGainFeatureIndex = 0
     bestThreshold = 0
-    
+
     for i in range(0,featureIndicesMaxRange):
         threshold, gain = find_optimal_threshold_and_highest_gain(dataframe, i)
-        if gain == None:
+        if gain == 0:
+            parentNode.feature = features[i]
+            parentNode.threshold = threshold
             return tree
         if gain > highestGain:
             highestGain = gain
             highestGainFeatureIndex = i
             bestThreshold = threshold
 
-    #print(highestGain)
-    #print(features[highestGainFeatureIndex])
-    #print(bestThreshold)
-    
     parentNode.feature = features[highestGainFeatureIndex]
     parentNode.threshold = bestThreshold
     
+#==============================================================================
+#     if parentNode != None:
+#         print(parentNode.threshold)
+#==============================================================================
     leftFrame = dataframe[dataframe[features[highestGainFeatureIndex]] <= bestThreshold]
     rightFrame = dataframe[dataframe[features[highestGainFeatureIndex]] > bestThreshold]
     
@@ -104,24 +126,40 @@ def generate_tree(dataframe, parentNode):
     leftNode.parent = parentNode
     rightNode.parent = parentNode
     
-    if dataset_entropy(leftFrame) == 0:
-        leftNode.isLeaf = True
-        leftNode.classification = leftFrame.iloc[:, -1].unique()
-    if dataset_entropy(rightFrame) == 0:
-        rightNode.isLeaf = True
-        leftNode.classification = rightFrame.iloc[:, -1].unique()
+    parentNode.leftNode = leftNode
+    parentNode.rightNode = rightNode
     
-    if leftNode.isLeaf and rightNode.isLeaf:
-        return tree
+    leftNode.height = parentNode.height + 1
+    rightNode.height = parentNode.height + 1
+    
+    print(leftNode.height)
+    print(rightNode.height)
+    #print(leftNode.dataFrame)
+    
+
+#==============================================================================
+#     if dataset_entropy(leftFrame) == 0:
+#         leftNode.isLeaf = True
+#         leftNode.classification = leftFrame.iloc[:, -1].unique()
+#         #print(leftNode.classification)
+#     if dataset_entropy(rightFrame) == 0:
+#         rightNode.isLeaf = True
+#         rightNode.classification = rightFrame.iloc[:, -1].unique()
+#==============================================================================
+        #print(rightNode.classification)
     
     #print(rightNode.dataFrame.iloc[:, -1].unique())
-    generate_tree(leftNode.dataFrame, leftNode)
-    generate_tree(rightNode.dataFrame, rightNode)
+    generate_tree(leftNode.dataFrame, leftNode, tree)
+    generate_tree(rightNode.dataFrame, rightNode, tree)
     
+    tree.height += 1
+
     #print(leftNode.classification)
     #print(rightFrame)
             
     #print(featureIndicesMaxRange)
+    #print(parentNode.feature)
+    return tree
 
 def true_count_probability_of_threshold_counts(lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount):
     probabilityOfLessThanTrueCount = lessThan_TrueCount / (lessThan_TrueCount + lessThan_FalseCount + greaterThan_TrueCount + greaterThan_FalseCount)
@@ -244,7 +282,7 @@ def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThr
         gains.append(information_gain(datasetEntropy, i))
     
     if gains == []:
-        return None, None
+        return 0, 0
         
     return thresholds[gains.index(max(gains))], max(gains)
 
@@ -308,8 +346,12 @@ def normalizeData(dataframe):
     
     
 iris_data = pd.read_csv("iris.csv")
+tree = Treee()
 
-visualize_tree(generate_tree(iris_data, None))
+tree = generate_tree(iris_data, None, tree)
+
+print(tree.height)
+print(Tree(visualize_tree(tree.rootNode)+';'))
 
 
 
