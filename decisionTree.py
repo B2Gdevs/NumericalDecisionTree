@@ -1,7 +1,9 @@
 import pandas as pd
 import math
 import numpy as np
-from ete3 import Tree
+from sklearn.cross_validation import KFold
+import io
+from contextlib import redirect_stdout
 
 class Node:
     def __init__(self):
@@ -17,36 +19,23 @@ class Node:
         self.height = 0
 
 
-
-class Treee:
+class Tree:
     def __init__(self):
         self.rootNode = None
         self.height = 0
         
-def visualize_tree(node):
-     result = ''
-     hasRightNode = False;
-     hasLeftNode = False;
-     if node.rightNode != None:
-         hasRightNode = True
-         result = result + "("
-         result = result + visualize_tree(node.rightNode)
-     if node.leftNode != None:
-        hasLeftNode = True
-        if hasRightNode:
-            result = result + ","
-        else:
-            result = result + "("
-        result = result + visualize_tree(node.leftNode)
-     if hasLeftNode or hasRightNode:
-        result = result + ")"
-     if node.feature is not None:
-         result = result + node.feature
-     return result
+def visualize_tree(prefix, node):
+    if node.classification is not None:
+        print(prefix + "Classification: " + str(node.classification))
+    else:
+        print(prefix + "Feature: " +node.feature+  " Threshold: " + str(node.threshold))
+    
+    if node.rightNode is not None:
+        visualize_tree(prefix + " ", node.rightNode)
+    if  node.leftNode is not None:
+        visualize_tree(prefix + " ", node.leftNode)
+
      
-
-        
-
 def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     column_values = dataframe.iloc[:, featureIndex]
     yValues = get_yValue_column(dataframe)
@@ -131,9 +120,7 @@ def generate_tree(dataframe, parentNode, tree):
     
     leftNode.height = parentNode.height + 1
     rightNode.height = parentNode.height + 1
-    
-    print(leftNode.height)
-    print(rightNode.height)
+
     #print(leftNode.dataFrame)
     
 
@@ -344,14 +331,73 @@ def normalizeData(dataframe):
     normalizedDataframe["classification"] = yValuesColumn
     return(normalizedDataframe)
     
+def predict(node, series):
+    
+    if node.feature is not None:
+        if float(series[node.feature]) <= node.threshold:
+            if node.leftNode is not None:
+                return predict(node.leftNode, series)
+        elif series[node.feature] > node.threshold:
+            if node.rightNode is not None:
+                return predict(node.rightNode, series)
+    else:
+        return node.classification
+
+def cross_validation(dataframe, K):
+    
+    folds = KFold(dataframe.shape[0], n_folds = K)
+    
+    testSets = []
+    trainSets = []
+    for train, test in folds:
+        trainSets.append(dataframe.iloc[train])
+        testSets.append(dataframe.iloc[test])
+        
+    trees = []
+    for i in trainSets:
+        frame = pd.DataFrame(i)
+        tree = generate_tree(frame, None, Tree())
+        trees.append(tree)
+
+    
+    i = 0
+    accuracyList = []
+    for tree in trees:
+        for frame in testSets:
+            trueCount = 0
+            for index, series in frame.iterrows():
+                prediction = predict(tree.rootNode, series)
+                if prediction == series[-1]:
+                    trueCount += 1
+        i += 1
+        accuracyList.append(trueCount / frame.shape[0])
+        
+    meanAccuracy = sum(accuracyList) / len(accuracyList)
+    return meanAccuracy
+        
     
 iris_data = pd.read_csv("iris.csv")
-tree = Treee()
+tree = Tree()
 
 tree = generate_tree(iris_data, None, tree)
 
-print(tree.height)
-print(Tree(visualize_tree(tree.rootNode)+';'))
+f = io.StringIO()
+with redirect_stdout(f):
+    visualize_tree("", tree.rootNode)
+out = f.getvalue()
+
+print("asdfasdf")
+print(out)
+
+
+cross_validation(iris_data, 10)
+
+
+
+
+
+#print(tree.height)
+#print(Tree(visualize_tree(tree.rootNode)+';'))
 
 
 
