@@ -22,3 +22,6 @@ An insane amount of difficulties.
 3. Keeping track of all the entropiesa generated from the entropy-based binning was very difficult, especially in a recursive tree.
 4. Visualizing the tree.  However, it wasn't difficult once I had more guidance on the level of detail in needed to be.  I at first thought it had to rival the likes of ete's phylogenetic trees.  
 5. Recursive prediction requires all methods to called to return something, not just the last caller.
+
+
+All in all, it was a good experience even though it took a long time and got me behind on a lot of other work.
