@@ -8,7 +8,9 @@ The tree is generated recursively and it is printed recursively.  The program wi
 
 How to use:
  
-In the commandline go to the location where the python file exists and then type python decisionTree.py "yourCSVFileHere.csv" 1 2 3
+In the commandline go to the location where the python file exists and then type....
+
+python decisionTree.py "yourCSVFileHere.csv" 1 2 3
 
 1 2 3 being the first, second, and third feature columns you want.  If you specify 0 for the first column it will not work.  This was intially made.
 
