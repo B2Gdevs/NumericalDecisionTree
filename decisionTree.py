@@ -99,10 +99,6 @@ def generate_tree(dataframe, parentNode, tree):
     parentNode.feature = features[highestGainFeatureIndex]
     parentNode.threshold = bestThreshold
     
-#==============================================================================
-#     if parentNode != None:
-#         print(parentNode.threshold)
-#==============================================================================
     leftFrame = dataframe[dataframe[features[highestGainFeatureIndex]] <= bestThreshold]
     rightFrame = dataframe[dataframe[features[highestGainFeatureIndex]] > bestThreshold]
     
@@ -111,7 +107,6 @@ def generate_tree(dataframe, parentNode, tree):
     
     leftNode.dataFrame = leftFrame
     rightNode.dataFrame = rightFrame
-    #print(rightNode.dataFrame)
     
     leftNode.parent = parentNode
     rightNode.parent = parentNode
@@ -122,31 +117,11 @@ def generate_tree(dataframe, parentNode, tree):
     leftNode.height = parentNode.height + 1
     rightNode.height = parentNode.height + 1
 
-    #print(leftNode.dataFrame)
-    
-
-#==============================================================================
-#     if dataset_entropy(leftFrame) == 0:
-#         leftNode.isLeaf = True
-#         leftNode.classification = leftFrame.iloc[:, -1].unique()
-#         #print(leftNode.classification)
-#     if dataset_entropy(rightFrame) == 0:
-#         rightNode.isLeaf = True
-#         rightNode.classification = rightFrame.iloc[:, -1].unique()
-#==============================================================================
-        #print(rightNode.classification)
-    
-    #print(rightNode.dataFrame.iloc[:, -1].unique())
     generate_tree(leftNode.dataFrame, leftNode, tree)
     generate_tree(rightNode.dataFrame, rightNode, tree)
     
     tree.height += 1
 
-    #print(leftNode.classification)
-    #print(rightFrame)
-            
-    #print(featureIndicesMaxRange)
-    #print(parentNode.feature)
     return tree
 
 def true_count_probability_of_threshold_counts(lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount):
@@ -168,35 +143,15 @@ def entropy(truecount, totalcount):
     entropy = 0
     probability = truecount / totalcount
     
-    ######DEBUGGER#########################
-    #print("\n\n\n probability in entropy")
-    #print(probability)
-    ######DEBUGGER#########################
 
     if(probability != 0):
                    # - p(x) * log2(p(x)) still needs - (1- p(x)) *log2((1-p(x))
         entropy -= probability * math.log(probability, 2)
 
-        ######DEBUGGER#########################
-        #print("\n\n\nfirst round of Entropy")
-        #print(entropy)
-        ######DEBUGGER#########################
-
     probability = (1 - probability)
-
-    ######DEBUGGER#########################
-    #print(("\n\n\n the next probability"))
-    #print(probability)
-    ######DEBUGGER#########################
 
     if(probability != 0):
         entropy -= probability * math.log(probability, 2)
-
-        ######DEBUGGER#########################
-        #print("\n\n\n the next part of entropy")
-        #print(entropy)
-        ######DEBUGGER#########################
-
 
     return entropy
     
@@ -205,34 +160,16 @@ def entropy_for_threshold_counts(truecount, falsecount):
     totalcount = truecount + falsecount
     entropy = 0
     probability = truecount / totalcount
-    ######DEBUGGER#########################
-    #print("\n\n\n probability in entropy")
-    #print(probability)
-    ######DEBUGGER#########################
 
     if(probability != 0):
                    # - p(x) * log2(p(x)) still needs - (1- p(x)) *log2((1-p(x))
         entropy -= probability * math.log(probability, 2)
 
-        ######DEBUGGER#########################
-        #print("\n\n\nfirst round of Entropy")
-        #print(entropy)
-        ######DEBUGGER#########################
-
     probability = (1 - probability)
-
-    ######DEBUGGER#########################
-    #print(("\n\n\n the next probability"))
-    #print(probability)
-    ######DEBUGGER#########################
 
     if(probability != 0):
         entropy -= probability * math.log(probability, 2)
 
-        ######DEBUGGER#########################
-        #print("\n\n\n the next part of entropy")
-        #print(entropy)
-        ######DEBUGGER#########################
 
 
     return entropy
@@ -277,9 +214,6 @@ def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThr
 def information_gain(datasetEntropy, thresholdEntropy):
     gain = datasetEntropy - thresholdEntropy
     return gain
-
-def best_gain(datasetEntropy, featureEntropy):
-    pass
 
 def dataset_entropy(dataframe):
     entropyOfData = 0
@@ -381,12 +315,10 @@ def main(argv):
     #====================Get Features==================
 
     indicesOfFeaturesWanted = [int(i) for i in argv[2:]]
-    print(indicesOfFeaturesWanted)
     indices = []
     for i in indicesOfFeaturesWanted:
         indices.append(i - 1)
-        
-    print(indices)
+
     #Grabs file name and reads the file
     Data = pd.read_csv(argv[1])
     #print(Data)
