@@ -6,6 +6,7 @@ import io
 from contextlib import redirect_stdout
 import sys
 
+#This class is the hallmark of this application.  This is what makes the Tree
 class Node:
     def __init__(self):
         self.parent = None
@@ -19,12 +20,14 @@ class Node:
         self.visited = False
         self.height = 0
 
-
+#This class just holds reference to the root node
 class Tree:
     def __init__(self):
         self.rootNode = None
         self.height = 0
-        
+
+#This method is what visualizes the tree, however this is mainly captured and
+#saved as a text file
 def visualize_tree(prefix, node):
     if node.classification is not None:
         print(prefix + "Classification: " + str(node.classification))
@@ -36,7 +39,14 @@ def visualize_tree(prefix, node):
     if  node.leftNode is not None:
         visualize_tree(prefix + " ", node.leftNode)
 
-     
+#This method gets the false and true counts of each threshold used.  This
+#is mainly to get th probability to get the entropy of the threshold.  
+#Then it would be put against the entropy of the feature column and that would
+#get the information gain from the entire dataset.
+#It requires a dataframe, the feature index, a threshold, and the class name.
+#This method was made for a for loop.  It returns four variables, the true 
+#counts of the less than and greater than thresholds, and the false counts
+#of the less than and greater than thresholds
 def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     column_values = dataframe.iloc[:, featureIndex]
     yValues = get_yValue_column(dataframe)
@@ -67,6 +77,9 @@ def get_counts_with_threshold(dataframe, featureIndex, threshold, className):
     
     return lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount
     
+#Recursive tree that is built using the thresholds, it requires a dataframe,
+#the initial dataframe, a None type, and a tree
+#(anonymous) will also work
 def generate_tree(dataframe, parentNode, tree):
     
     if parentNode == None:
@@ -123,13 +136,16 @@ def generate_tree(dataframe, parentNode, tree):
     tree.height += 1
 
     return tree
-
+    
+#This gets the probability of the thresholds, it requires the counts from
+#get_counts_with_threshold method.
 def true_count_probability_of_threshold_counts(lessThan_TrueCount, greaterThan_TrueCount, lessThan_FalseCount, greaterThan_FalseCount):
     probabilityOfLessThanTrueCount = lessThan_TrueCount / (lessThan_TrueCount + lessThan_FalseCount + greaterThan_TrueCount + greaterThan_FalseCount)
     probabilityOfGreaterThanTrueCount = greaterThan_TrueCount / (lessThan_TrueCount + lessThan_FalseCount + greaterThan_TrueCount + greaterThan_FalseCount)
   
     return probabilityOfLessThanTrueCount, probabilityOfGreaterThanTrueCount
-    
+   
+#self explanatory
 def generate_thresholds(dataframe, featureIndex, numberofthresholdstoCheck = 10):
     maxValue = dataframe.iloc[:, featureIndex].max()
     minValue = dataframe.iloc[:, featureIndex].min()
@@ -138,6 +154,8 @@ def generate_thresholds(dataframe, featureIndex, numberofthresholdstoCheck = 10)
     listOfThresholds = [n for n in np.arange(minValue, maxValue, step)]
     return listOfThresholds
     
+#This method is used for getting general entropy from the true counts of things
+# and the total counts of the things.  Returns entropy as a float
 def entropy(truecount, totalcount):
     
     entropy = 0
@@ -155,6 +173,9 @@ def entropy(truecount, totalcount):
 
     return entropy
     
+#Same thing as entropy except this combines the true and falsecounts of the
+#thresholds to get the total count necessary for the probability.
+#Returns entropy as a float
 def entropy_for_threshold_counts(truecount, falsecount):
     
     totalcount = truecount + falsecount
@@ -170,10 +191,13 @@ def entropy_for_threshold_counts(truecount, falsecount):
     if(probability != 0):
         entropy -= probability * math.log(probability, 2)
 
-
-
     return entropy
-
+#This is a method that takes all of the others and makes the magic happen.
+#This method finds the optimal threshold and the highest gain.  It takes the
+#initial dataframe, the feature index, and a number of thresholds to check, 
+#however the thresholds have been defaulted to 10.
+#It returns 2 variables, the first being the best threshold, the second the 
+#highest information gain, which should be from the threshold returned
 def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThresholdstoCheck = 10):
     classNames = get_yValue_column(dataframe).unique()
     
@@ -211,10 +235,14 @@ def find_optimal_threshold_and_highest_gain(dataframe, featureIndex, numberOfThr
         
     return thresholds[gains.index(max(gains))], max(gains)
 
+#generates information gain given a dataset Entropy and the Threshold Entroypy
+#It returns the gain.
 def information_gain(datasetEntropy, thresholdEntropy):
     gain = datasetEntropy - thresholdEntropy
     return gain
 
+#Gives the dataset entropy given a dataframe object.  Returns the entropy as 
+#a float
 def dataset_entropy(dataframe):
     entropyOfData = 0
     totalCount = get_total_count_of_rows(dataframe)
@@ -225,10 +253,12 @@ def dataset_entropy(dataframe):
         
     return(entropyOfData / (len(dataframe.columns) - 1))
     
-
+#Gets number of rows in a dataframe object
 def get_total_count_of_rows(dataframe):
     return dataframe.shape[0]
 
+#gets the count of the y values in a datframe object. Returns a list of 
+#the names and there counts
 def get_counts_of_classes(dataframe):
     #Grabbing the last column index INTEGER
     classifyingColumnIndex = get_yValue_column_index(dataframe)
@@ -241,7 +271,7 @@ def get_counts_of_classes(dataframe):
     
     return listOf2Tuples_Count_Class
     
-    #shortcut method rather than figuring out indexes again...
+    #shortcut method rather than figuring out indexes again...given a dataframe
 def get_yValue_column_index(dataframe):
     classifyingColumnIndex = len(dataframe.columns) - 1
     return classifyingColumnIndex
@@ -265,7 +295,10 @@ def normalizeData(dataframe):
     normalizedDataframe = (dataframeWithoutClasses - dataframeWithoutClasses.mean()) / (dataframeWithoutClasses.max() - dataframeWithoutClasses.min())
     normalizedDataframe["classification"] = yValuesColumn
     return(normalizedDataframe)
-    
+
+#A recursive prediction method given a rootNode from a tree object and the 
+#the series to predict on taken from a pandas column.  It returns the 
+#classification
 def predict(node, series):
     
     if node.feature is not None:
@@ -278,6 +311,9 @@ def predict(node, series):
     else:
         return node.classification
 
+#This method takes a dataFrame object and a value of how many folds to make k
+#this is an implementatino of k-folds cross validation using pandas objects
+#it returns the mean accuracy of the model
 def cross_validation(dataframe, K):
     
     folds = KFold(dataframe.shape[0], n_folds = K)
