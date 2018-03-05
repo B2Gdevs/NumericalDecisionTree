@@ -1,0 +1,53 @@
+Feature: petal length Threshold: 2.18
+ Feature: petal length Threshold: 4.56
+  Feature: petal length Threshold: 4.6
+   Feature: petal length Threshold: 4.7
+    Feature: sepal length Threshold: 6.75
+     Feature: petal length Threshold: 5.01
+      Classification: ['Iris-virginica']
+      Classification: ['Iris-versicolor']
+     Feature: sepal width Threshold: 2.92
+      Feature: sepal length Threshold: 6.46
+       Feature: petal length Threshold: 5.0
+        Classification: ['Iris-virginica']
+        Classification: ['Iris-versicolor']
+       Feature: petal length Threshold: 5.64
+        Classification: ['Iris-virginica']
+        Feature: petal length Threshold: 5.52
+         Classification: ['Iris-virginica']
+         Feature: sepal width Threshold: 3.2
+          Classification: ['Iris-virginica']
+          Feature: petal length Threshold: 5.36
+           Classification: ['Iris-virginica']
+           Feature: sepal length Threshold: 6.1
+            Classification: ['Iris-virginica']
+            Feature: sepal width Threshold: 3.0
+             Classification: ['Iris-versicolor']
+             Classification: ['Iris-virginica']
+      Feature: sepal length Threshold: 6.26
+       Feature: sepal length Threshold: 6.42
+        Classification: ['Iris-virginica']
+        Feature: sepal width Threshold: 2.82
+         Classification: ['Iris-virginica']
+         Feature: petal length Threshold: 5.32
+          Classification: ['Iris-virginica']
+          Feature: sepal length Threshold: 6.3
+           Classification: ['Iris-virginica']
+           Feature: sepal length Threshold: 0
+       Feature: sepal length Threshold: 5.6
+        Feature: sepal length Threshold: 5.7
+         Feature: sepal length Threshold: 6.12
+          Classification: ['Iris-virginica']
+          Feature: sepal length Threshold: 6.01
+           Classification: ['Iris-virginica']
+           Feature: sepal width Threshold: 2.2
+            Feature: petal length Threshold: 0
+            Classification: ['Iris-virginica']
+         Classification: ['Iris-virginica']
+        Classification: ['Iris-virginica']
+    Classification: ['Iris-versicolor']
+   Classification: ['Iris-versicolor']
+  Feature: sepal length Threshold: 4.9
+   Classification: ['Iris-versicolor']
+   Feature: sepal length Threshold: 0
+ Classification: ['Iris-setosa']

@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.cross_validation import KFold
 import io
 from contextlib import redirect_stdout
+import sys
 
 class Node:
     def __init__(self):
@@ -374,30 +375,43 @@ def cross_validation(dataframe, K):
         
     meanAccuracy = sum(accuracyList) / len(accuracyList)
     return meanAccuracy
+
+def main(argv):
+
+    #====================Get Features==================
+
+    indicesOfFeaturesWanted = [int(i) for i in argv[2:]]
+    print(indicesOfFeaturesWanted)
+    indices = []
+    for i in indicesOfFeaturesWanted:
+        indices.append(i - 1)
         
+    print(indices)
+    #Grabs file name and reads the file
+    Data = pd.read_csv(argv[1])
+    #print(Data)
+    rows, cols = Data.shape
+    indices.append(cols - 1)
+    featuresWanted = Data.iloc[:, indices]
+    tree = Tree()
     
-iris_data = pd.read_csv("iris.csv")
-tree = Tree()
-
-tree = generate_tree(iris_data, None, tree)
-
-f = io.StringIO()
-with redirect_stdout(f):
-    visualize_tree("", tree.rootNode)
-out = f.getvalue()
-
-print("asdfasdf")
-print(out)
-
-
-cross_validation(iris_data, 10)
-
-
-
-
-
-#print(tree.height)
-#print(Tree(visualize_tree(tree.rootNode)+';'))
-
-
-
+    generate_tree(featuresWanted, None, tree)
+    
+    f = io.StringIO()
+    with redirect_stdout(f):
+        visualize_tree("", tree.rootNode)
+    out = f.getvalue()
+    
+    file = open("decisionTree.txt", 'w')
+    file.write(out)
+    file.close()
+    
+    accuracy = cross_validation(featuresWanted, 10)
+    
+    print("The average accuracy of the model is " + str(accuracy) + " based on 10 " +
+          "fold cross-validation.  An output of the initial tree is saved in a text file "+
+          "called decisionTree.txt")
+    
+if __name__ == "__main__":
+    main(sys.argv)
+    
